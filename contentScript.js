@@ -34,11 +34,16 @@ var textTitle = document.title;
 textTitle = prepare_title(textTitle);
 var children = textContentBody.children;
 var whole_text = ""
+var i = 0
 for (i = 0; i < children.length; i++) {
   // make sure it's not a title for External Links
-  if (i+1 < children.length && children[i+1].tagName == "UL" && children[i].children[0].tagName == "B") {
+  if (i+1 < children.length && 
+    children[i+1].tagName == "UL" && 
+    children[i].children[0] != undefined && 
+    children[i].children.length == 1 && 
+    children[i].children[0].tagName == "B") {
     continue;
-  };
+  }
   var show = 0;
   // it's a Paragraph
   if (children[i].tagName == "P" && children[i].className != "mw-empty-elt") {
