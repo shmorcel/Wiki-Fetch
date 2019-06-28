@@ -159,23 +159,24 @@ grab_page = function () {
     if (children[i].tagName == "P" && children[i].querySelectorAll("span").length > 0)
       continue;
     
-    var show = 0;
+    var grab = 0;
     // it's a Paragraph
     if (children[i].tagName == "P" && children[i].className != "mw-empty-elt") {
       child = children[i];
-      show = 1;
+      grab = 1;
     }
     // it's a Paragraph in a block-quote
     if (children[i].tagName == "BLOCKQUOTE") {
       child = children[i].children[0];  
-      show = 1;
+      grab = 1;
     }
-    if (show == 1) {
+    if (grab == 1) {
       var text = children[i].innerText || children[i].textContent;
       text_to_append = prepare_text(text);
-      if (text_to_append != null)
+      if (text_to_append != null) 
         whole_text += text_to_append;
         whole_text += "\n";
+        //whole_text += String.fromCharCode(10).concat(String.fromCharCode(13)); // linefeed and carriage return
     }
   }
   var message = {};
