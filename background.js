@@ -24,7 +24,8 @@ chrome.runtime.onMessage.addListener(
         file: 'contentScript.js'
       });
     } else if (message.type == "download") {
-      var blob = new Blob([message.body], {type: "text/plain"});
+      var output = message.body;
+      var blob = new Blob([output], {type: "text/plain;charset=utf-8"});
       var url = URL.createObjectURL(blob);
       // download the blob as a text file into Downloads
       chrome.downloads.download({

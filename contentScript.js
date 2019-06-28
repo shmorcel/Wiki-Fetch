@@ -12,6 +12,10 @@ prepare_text = function (text) {
     text = text.replace(number_finder, "");
     var anything_else_finder = /[^a-zA-Z(),.;:"'?!\s]+/g;
     text = text.replace(anything_else_finder, "");
+
+    // moving to one byte... when written in UTF-8
+    var non_ASCII_representable_finder = /[\x00-\x7F]/g;
+    text = text.replace(non_ASCII_representable_finder, "");
     //var percentage_finder = /%/g;
     //text = text.replace(percentage_finder, "");
     //var degree_finder = /°/g;
@@ -34,6 +38,12 @@ prepare_title = function (text){
   text = text.replace(post_fix_finder, "_wikipedia");
   var space_finder = /\s{1,}/g;
   text = text.replace(space_finder, "_");
+  // remove some unwanted characters
+  var file_name_to_avoid_characters_finder = /[/\\:*?"<>|]/g;
+  text = text.replace(file_name_to_avoid_characters_finder, "");
+  // moving to one byte... when written in UTF-8
+  var non_ASCII_representable_finder = /[\x00-\x7F]/g;
+  text = text.replace(non_ASCII_representable_finder, "");
   //return the processed text
   return text;
 }
