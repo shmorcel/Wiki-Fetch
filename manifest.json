@@ -2,7 +2,7 @@
   "name": "Wiki Fetch",
   "version": "0.2",
   "description": "An extension to fetch Wikipedia text.",
-  "permissions": ["downloads", "activeTab", "declarativeContent", "storage"],
+  "permissions": ["tabs", "downloads", "activeTab", "declarativeContent", "storage"],
   "background": {
   "scripts": ["background.js"],
   "persistent": false
