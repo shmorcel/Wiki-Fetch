@@ -3,6 +3,7 @@
 chrome.runtime.onInstalled.addListener(function() {
   // chrome.storage.local.set({remove_number: false}, undefined);
   chrome.storage.local.set({'count': 0});
+  chrome.storage.local.set({'num_of_pages': 10});
   chrome.storage.local.set({'links': []});
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
@@ -33,22 +34,24 @@ chrome.runtime.onMessage.addListener(
         filename: message.title + ".txt" 
       });
     } else if (message.type == "update_tab") {
-      var number_of_pages = 10;
-      chrome.storage.local.get(['count'], function(result) {
-        var count = result.count;
-        if (count < number_of_pages) {
-          chrome.storage.local.get(['links'], function(result) {
-            setTimeout(function(){
-              chrome.tabs.update({url: result.links[count]})
-            }, 1000);
-            setTimeout(function(){
-              chrome.tabs.executeScript({
-                file: 'contentScript.js'
-              });
-            }, 2000);
-          });
-        }
-        chrome.storage.local.set({'count': count + 1});
+      chrome.storage.local.get(['num_of_pages'], function(result) {
+        var num_of_pages = result.num_of_pages;
+        chrome.storage.local.get(['count'], function(result) {
+          var count = result.count;
+          if (count < (num_of_pages - 1)) {
+            chrome.storage.local.get(['links'], function(result) {
+              setTimeout(function(){
+                chrome.tabs.update({url: result.links[count]})
+              }, 1000);
+              setTimeout(function(){
+                chrome.tabs.executeScript({
+                  file: 'contentScript.js'
+                });
+              }, 2000);
+            });
+          }
+          chrome.storage.local.set({'count': count + 1});
+        });
       });
     }
   }
