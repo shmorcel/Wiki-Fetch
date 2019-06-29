@@ -1,6 +1,6 @@
 {
   "name": "Wiki Fetch",
-  "version": "0.5",
+  "version": "0.7",
   "description": "An extension to fetch Wikipedia text.",
   "permissions": ["tabs", "downloads", "activeTab", "declarativeContent", "storage"],
   "background": {
@@ -22,6 +22,13 @@
      "48": "images/get_started48.png",
      "128": "images/get_started128.png"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://*.wikipedia.org/wiki/*"],
+      "exclude_globs": ["*/wiki/Main_Page"],
+      "js": ["contentScript.js"]
+    }
+  ],
   "options_page": "options.html",
   "manifest_version": 2
 }

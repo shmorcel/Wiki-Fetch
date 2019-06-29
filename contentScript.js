@@ -200,22 +200,24 @@ get_link_from_current_page = function (){
 }
 
 main_script = function () {
-  var time_interval = 1000;
-  setTimeout(function(){ grab_page() }, time_interval);
-  setTimeout(function(){ 
-    chrome.storage.local.get(['num_of_pages'], function(result) {
-      var num_of_pages = result.num_of_pages;
-      chrome.storage.local.get(['links'], function(result) {
-        // if the number of links is smaller than will ever be needed then add new links
-        if (result.links.length < num_of_pages + 1) { // the plus 1 is a padding for safety (the logic is tiresome)
-          var links = get_link_from_current_page();
-          chrome.storage.local.set({'links': result.links.concat(links)});
-        }
+  chrome.storage.local.get(['fetch_flag'], function(result) {
+    if (result.fetch_flag == true){
+      var time_interval = 1000;
+      grab_page();
+      chrome.storage.local.get(['num_of_pages'], function(result) {
+        var num_of_pages = result.num_of_pages;
+        chrome.storage.local.get(['links'], function(result) {
+          // if the number of links is smaller than will ever be needed then add new links
+          if (result.links.length < num_of_pages + 1) { // the plus 1 is a padding for safety (the logic is tiresome)
+            var links = get_link_from_current_page();
+            chrome.storage.local.set({'links': result.links.concat(links)});
+          }
+        });
+        message = {};
+        message.type = "update_tab";
+        chrome.runtime.sendMessage(message);
       });
-      message = {};
-      message.type = "update_tab";
-      chrome.runtime.sendMessage(message);
-    });
-  }, 2 * time_interval);
+    }
+  });
 }
 main_script();

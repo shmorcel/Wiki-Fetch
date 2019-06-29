@@ -5,6 +5,7 @@ chrome.runtime.onInstalled.addListener(function() {
   chrome.storage.local.set({'count': 0});
   chrome.storage.local.set({'num_of_pages': 10});
   chrome.storage.local.set({'links': []});
+  chrome.storage.local.set({'fetch_flag': false});
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [new chrome.declarativeContent.PageStateMatcher({
@@ -18,13 +19,7 @@ chrome.runtime.onInstalled.addListener(function() {
 
 chrome.runtime.onMessage.addListener(
   function(message, callback) {
-    if (message.type == "runContentScript"){
-      chrome.storage.local.set({'count': 0});
-      chrome.storage.local.set({'links': []});
-      chrome.tabs.executeScript({
-        file: 'contentScript.js'
-      });
-    } else if (message.type == "download") {
+    if (message.type == "download") {
       var output = message.body;
       var blob = new Blob([output], {type: "text/plain;charset=utf-8"});
       var url = URL.createObjectURL(blob);
@@ -38,17 +33,12 @@ chrome.runtime.onMessage.addListener(
         var num_of_pages = result.num_of_pages;
         chrome.storage.local.get(['count'], function(result) {
           var count = result.count;
-          if (count < (num_of_pages - 1)) {
+          if (count < (num_of_pages - 1)) { // if the number of pages wasn't reached yet
             chrome.storage.local.get(['links'], function(result) {
-              setTimeout(function(){
-                chrome.tabs.update({url: result.links[count]})
-              }, 1000);
-              setTimeout(function(){
-                chrome.tabs.executeScript({
-                  file: 'contentScript.js'
-                });
-              }, 2000);
+              chrome.tabs.update({url: result.links[count]})
             });
+          } else { // stop traversing through the pages
+            chrome.storage.local.set({'fetch_flag': false});
           }
           chrome.storage.local.set({'count': count + 1});
         });
