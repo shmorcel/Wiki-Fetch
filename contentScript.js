@@ -140,6 +140,7 @@ prepare_title = function (text){
 }
 
 grab_page = function () {
+  // get all the text from the page's body.
   var textContentBody = document.getElementsByClassName("mw-parser-output")[0];
   var textTitle = document.title;
   textTitle = prepare_title(textTitle);
@@ -159,7 +160,7 @@ grab_page = function () {
     if (children[i].tagName == "P" && children[i].querySelectorAll("span").length > 0)
       continue;
     
-    var grab = 0;
+    var grab = 0; // a flag to signal inclusion
     // it's a Paragraph
     if (children[i].tagName == "P" && children[i].className != "mw-empty-elt") {
       child = children[i];
@@ -170,15 +171,18 @@ grab_page = function () {
       child = children[i].children[0];  
       grab = 1;
     }
-    if (grab == 1) {
+    if (grab == 1) { // we grab the text inside
       var text = children[i].innerText || children[i].textContent;
       text_to_append = prepare_text(text);
-      if (text_to_append != null) 
+      if (text_to_append != null) {
         whole_text += text_to_append;
         whole_text += "\n";
-        //whole_text += String.fromCharCode(10).concat(String.fromCharCode(13)); // linefeed and carriage return
+        // or whole_text += String.fromCharCode(10).concat(String.fromCharCode(13)); 
+        // linefeed and carriage return
+      }
     }
   }
+  // download the extracted text-body
   var message = {};
   message.type = "download";
   message.body = whole_text;
@@ -187,6 +191,7 @@ grab_page = function () {
 }
 
 get_link_from_current_page = function (){
+  // get all the links from the page's body.
   var textContentBody = document.getElementsByClassName("mw-parser-output")[0];
   var paragraphs = textContentBody.querySelectorAll("p");
   var links = [];
@@ -199,25 +204,54 @@ get_link_from_current_page = function (){
   return links;
 }
 
+update_tab = function (){
+  var message = {};
+  message.type = "update_tab";
+  chrome.runtime.sendMessage(message);
+}
+
 main_script = function () {
-  chrome.storage.local.get(['fetch_flag'], function(result) {
+  // the main function of the injected code.
+  chrome.storage.local.get(['fetch_flag'], function(result) { 
     if (result.fetch_flag == true){
+      // if the Fetch! button is pressed
       var time_interval = 1000;
       grab_page();
       chrome.storage.local.get(['num_of_pages'], function(result) {
         var num_of_pages = result.num_of_pages;
-        chrome.storage.local.get(['links'], function(result) {
-          // if the number of links is smaller than will ever be needed then add new links
-          if (result.links.length < num_of_pages + 1) { // the plus 1 is a padding for safety (the logic is tiresome)
-            var links = get_link_from_current_page();
-            chrome.storage.local.set({'links': result.links.concat(links)});
-          }
+        chrome.storage.local.get(['count'], function(result) { 
+          var count = result.count;
+          chrome.storage.local.get(['traversal'], function(result) {
+            var traversal = result.traversal;
+            chrome.storage.local.get(['links'], function(result) { 
+              if (traversal == 'BFS'){
+                var new_list = result.links;
+                if (count + result.links.length < num_of_pages + 5) 
+                  /* the plus 1 is a padding for safety (the logic is tiresome) */{ 
+                  // if the number of links is smaller than will ever be needed then add new links
+                  var links = get_link_from_current_page();
+                  new_list = result.links.concat(links);
+                }
+                new_list.splice(0,1);
+                chrome.storage.local.set({'links': new_list}, function(){
+                  // change the url to the next one scheduled
+                  update_tab();
+                }); 
+              } else if (traversal == 'DFS'){ 
+                // assumption: no stubs will be met. 
+                var links = get_link_from_current_page();
+                var new_list = links.splice(0,1); // DFS
+                chrome.storage.local.set({'links': new_list}, function(){
+                  // change the url to the next one scheduled
+                  update_tab();
+                });
+              }
+            });
+          });
         });
-        message = {};
-        message.type = "update_tab";
-        chrome.runtime.sendMessage(message);
       });
     }
   });
 }
+// run the script
 main_script();
