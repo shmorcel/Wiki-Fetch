@@ -1,6 +1,6 @@
 {
   "name": "Wiki Fetch",
-  "version": "0.9",
+  "version": "1.0",
   "description": "An extension to fetch Wikipedia text.",
   "permissions": ["tabs", "downloads", "activeTab", "declarativeContent", "storage"],
   "background": {

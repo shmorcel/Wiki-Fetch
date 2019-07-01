@@ -3,6 +3,8 @@
 // when the extension is installed...
 chrome.runtime.onInstalled.addListener(function() {
   // add rule to enabled the page action button for wikipedia pages only
+  chrome.storage.local.set({'traversal': 'BFS'});
+  console.log("Traversal is BFS.");
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [new chrome.declarativeContent.PageStateMatcher({
@@ -35,7 +37,8 @@ chrome.runtime.onMessage.addListener(
           var count = result.count;
           if (count < (num_of_pages - 1)) { // if the number of pages wasn't reached yet
             chrome.storage.local.get(['links'], function(result) {
-              chrome.tabs.update({url: result.links[count]})
+              //chrome.tabs.update({url: result.links[count]})
+              chrome.tabs.update({url: result.links[0]})
             });
           } else { // stop traversing through the pages
             chrome.storage.local.set({'fetch_flag': false});

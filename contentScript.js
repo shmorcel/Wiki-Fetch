@@ -204,6 +204,12 @@ get_link_from_current_page = function (){
   return links;
 }
 
+update_tab = function (){
+  var message = {};
+  message.type = "update_tab";
+  chrome.runtime.sendMessage(message);
+}
+
 main_script = function () {
   // the main function of the injected code.
   chrome.storage.local.get(['fetch_flag'], function(result) { 
@@ -213,17 +219,36 @@ main_script = function () {
       grab_page();
       chrome.storage.local.get(['num_of_pages'], function(result) {
         var num_of_pages = result.num_of_pages;
-        chrome.storage.local.get(['links'], function(result) {
-          if (result.links.length < num_of_pages + 1) /* the plus 1 is a padding for safety (the logic is tiresome) */{ 
-            // if the number of links is smaller than will ever be needed then add new links
-            var links = get_link_from_current_page();
-            chrome.storage.local.set({'links': result.links.concat(links)}); // BFS
-          }
+        chrome.storage.local.get(['count'], function(result) { 
+          var count = result.count;
+          chrome.storage.local.get(['traversal'], function(result) {
+            var traversal = result.traversal;
+            chrome.storage.local.get(['links'], function(result) { 
+              if (traversal == 'BFS'){
+                var new_list = result.links;
+                if (count + result.links.length < num_of_pages + 5) 
+                  /* the plus 1 is a padding for safety (the logic is tiresome) */{ 
+                  // if the number of links is smaller than will ever be needed then add new links
+                  var links = get_link_from_current_page();
+                  new_list = result.links.concat(links);
+                }
+                new_list.splice(0,1);
+                chrome.storage.local.set({'links': new_list}, function(){
+                  // change the url to the next one scheduled
+                  update_tab();
+                }); 
+              } else if (traversal == 'DFS'){ 
+                // assumption: no stubs will be met. 
+                var links = get_link_from_current_page();
+                var new_list = links.splice(0,1); // DFS
+                chrome.storage.local.set({'links': new_list}, function(){
+                  // change the url to the next one scheduled
+                  update_tab();
+                });
+              }
+            });
+          });
         });
-        // change the url to the next one scheduled
-        message = {};
-        message.type = "update_tab";
-        chrome.runtime.sendMessage(message);
       });
     }
   });
